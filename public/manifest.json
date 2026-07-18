@@ -1,0 +1,24 @@
+{
+  "name": "IGWT Bible",
+  "short_name": "IGWT Bible",
+  "description": "In God We Trust Bible App. A premium, modern, responsive Bible application with offline-first reading, search, history, notes, and beautiful verse customization.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "https://i.ibb.co/NRBK22V/jawadmd.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://i.ibb.co/NRBK22V/jawadmd.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ]
+}

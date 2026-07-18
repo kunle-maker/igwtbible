@@ -1,0 +1,6 @@
+{
+  "name": "IGWT Bible",
+  "description": "In God We Trust Bible App. A premium, modern, responsive Bible application with offline-first reading, search, history, notes, and beautiful verse customization.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
