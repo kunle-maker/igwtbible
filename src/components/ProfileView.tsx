@@ -126,8 +126,8 @@ export default function ProfileView({
           <p className="font-sans text-xs text-zinc-500 mt-1">My offline logs, statistics, and customization</p>
         </div>
         <img 
-          src="https://i.ibb.co/gMNj0vhp/jawadmd.jpg" 
-          alt="User Profile" 
+          src="https://i.ibb.co/NRBK22V/jawadmd.jpg" 
+          alt="IGWT Logo" 
           className="w-12 h-12 rounded-2xl object-cover border border-[#D4AF37]/30 shadow-md"
           referrerPolicy="no-referrer"
         />

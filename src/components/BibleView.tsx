@@ -75,7 +75,7 @@ export default function BibleView({
   const [copySuccess, setCopySuccess] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
 
-  // Stop speaking when book or chapter changes
+  // Stop speaking when book, chapter, or translation changes
   useEffect(() => {
     if (isSpeaking) {
       window.speechSynthesis.cancel();
@@ -84,25 +84,50 @@ export default function BibleView({
     return () => {
       window.speechSynthesis.cancel();
     };
-  }, [currentBook, currentChapter]);
+  }, [currentBook, currentChapter, activeTranslation]);
 
   const handleToggleSpeak = () => {
     if (isSpeaking) {
       window.speechSynthesis.cancel();
       setIsSpeaking(false);
     } else {
-      const fullText = verses.map(v => `Verse ${v.number}. ${v.text}`).join(' ');
-      if (!fullText) return;
+      if (!verses || verses.length === 0) return;
       
-      const utterance = new SpeechSynthesisUtterance(fullText);
-      utterance.onend = () => {
+      // Cancel any ongoing speech first
+      window.speechSynthesis.cancel();
+      
+      const utterances: SpeechSynthesisUtterance[] = [];
+      
+      verses.forEach((v) => {
+        const cleanText = v.text
+          .replace(/<[^>]*>/g, '') // strip HTML if any
+          .replace(/\[.*?\]/g, '') // remove bracketed notes if any
+          .trim();
+        
+        if (cleanText) {
+          const utterance = new SpeechSynthesisUtterance(`Verse ${v.number}. ${cleanText}`);
+          utterances.push(utterance);
+        }
+      });
+      
+      if (utterances.length === 0) return;
+      
+      // Attach end and error handlers to the last utterance
+      const lastUtterance = utterances[utterances.length - 1];
+      lastUtterance.onend = () => {
         setIsSpeaking(false);
       };
-      utterance.onerror = () => {
-        setIsSpeaking(false);
+      lastUtterance.onerror = (event) => {
+        if (event.error !== 'interrupted') {
+          setIsSpeaking(false);
+        }
       };
       
-      window.speechSynthesis.speak(utterance);
+      // Speak all of them (the browser queues them up automatically)
+      utterances.forEach((u) => {
+        window.speechSynthesis.speak(u);
+      });
+      
       setIsSpeaking(true);
     }
   };

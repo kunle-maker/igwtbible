@@ -1,4 +1,5 @@
 {
+  "id": "/",
   "name": "IGWT Bible",
   "short_name": "IGWT Bible",
   "description": "In God We Trust Bible App. A premium, modern, responsive Bible application with offline-first reading, search, history, notes, and beautiful verse customization.",
@@ -7,18 +8,65 @@
   "background_color": "#000000",
   "theme_color": "#000000",
   "orientation": "portrait-primary",
+  "categories": [
+    "books",
+    "education",
+    "lifestyle"
+  ],
   "icons": [
     {
-      "src": "https://i.ibb.co/NRBK22V/jawadmd.jpg",
-      "sizes": "512x512",
-      "type": "image/jpeg",
-      "purpose": "any maskable"
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
     },
     {
-      "src": "https://i.ibb.co/NRBK22V/jawadmd.jpg",
+      "src": "/icon-192.png",
       "sizes": "192x192",
-      "type": "image/jpeg",
-      "purpose": "any maskable"
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshot-mobile.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "IGWT Bible Mobile Reader"
+    },
+    {
+      "src": "/screenshot-desktop.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "IGWT Bible Desktop Reader"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Read Bible",
+      "url": "/",
+      "description": "Open the Bible Reader",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
     }
   ]
 }
