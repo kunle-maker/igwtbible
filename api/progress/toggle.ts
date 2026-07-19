@@ -1,5 +1,5 @@
 import { IncomingMessage, ServerResponse } from 'http';
-import { saveReadingProgress } from '../../server/db';
+import { saveReadingProgress } from '../db';
 
 export default async function handler(req: any, res: any) {
   // Add CORS headers

@@ -1,5 +1,5 @@
 import { IncomingMessage, ServerResponse } from 'http';
-import { syncUserData } from '../../server/db';
+import { syncUserData } from '../db';
 
 export default async function handler(req: any, res: any) {
   // Add CORS headers
