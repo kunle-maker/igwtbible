@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { Verse, Highlight, Bookmark as BookmarkType, Note, AppSettings } from '../types';
 import { OFFLINE_FALLBACKS } from '../data/bibleBooks';
+import { getApiUrl } from '../utils/api';
 
 interface BibleViewProps {
   currentBook: string;
@@ -179,7 +180,7 @@ export default function BibleView({
       // Attempt to load from Bible Gateway scrapers via server route
       try {
         const response = await fetch(
-          `/api/passage?book=${encodeURIComponent(currentBook)}&chapter=${currentChapter}&version=${encodeURIComponent(activeTranslation)}`
+          getApiUrl(`/api/passage?book=${encodeURIComponent(currentBook)}&chapter=${currentChapter}&version=${encodeURIComponent(activeTranslation)}`)
         );
 
         if (!response.ok) {

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Compass, BookOpen, Search, User, Flame, Sparkles, Moon, Map } from 'lucide-react';
+import { getApiUrl } from './utils/api';
 
 // Custom Views / Components
 import TodayView from './components/TodayView';
@@ -77,7 +78,7 @@ export default function App() {
     const fetchDailyVerse = async () => {
       try {
         const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
-        const res = await fetch(`/api/daily-verse?tz=${encodeURIComponent(tz)}`);
+        const res = await fetch(getApiUrl(`/api/daily-verse?tz=${encodeURIComponent(tz)}`));
         if (res.ok) {
           const data = await res.json();
           if (data && data.verse) {
@@ -332,7 +333,7 @@ export default function App() {
     setUserName(userData.name);
 
     try {
-      const res = await fetch('/api/user/sync', {
+      const res = await fetch(getApiUrl('/api/user/sync'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -390,7 +391,7 @@ export default function App() {
 
     if (user) {
       try {
-        await fetch('/api/progress/toggle', {
+        await fetch(getApiUrl('/api/progress/toggle'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

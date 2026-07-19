@@ -1,0 +1,137 @@
+{
+  "id": "/",
+  "name": "IGWT Bible",
+  "short_name": "IGWT Bible",
+  "description": "In God We Trust Bible App. A premium, modern, responsive Bible application with offline-first reading, search, history, notes, and beautiful verse customization.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "orientation": "portrait-primary",
+  "categories": [
+    "books",
+    "education",
+    "lifestyle"
+  ],
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "screenshot-mobile.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "IGWT Bible Mobile Reader"
+    },
+    {
+      "src": "screenshot-desktop.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "IGWT Bible Desktop Reader"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Read Bible",
+      "url": "/",
+      "description": "Open the Bible Reader",
+      "icons": [
+        {
+          "src": "icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
+  ],
+  "display_override": [
+    "window-controls-overlay",
+    "tabbed",
+    "minimal-ui",
+    "standalone"
+  ],
+  "file_handlers": [
+    {
+      "action": "/",
+      "accept": {
+        "text/plain": [".txt"],
+        "application/json": [".json"]
+      },
+      "icons": [
+        {
+          "src": "icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ],
+      "launch_type": "single-client"
+    }
+  ],
+  "launch_handler": {
+    "client_mode": "focus-existing"
+  },
+  "protocol_handlers": [
+    {
+      "protocol": "web+bible",
+      "url": "/?bible=%s"
+    }
+  ],
+  "share_target": {
+    "action": "/?shared=1",
+    "method": "GET",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
+  "note_taking": {
+    "new_note_url": "/?note=new"
+  },
+  "edge_side_panel": {
+    "preferred_width": 480
+  },
+  "widgets": [
+    {
+      "name": "Bible Verse of the Day",
+      "description": "Daily encouraging scripture",
+      "tag": "bible_verse_day",
+      "template": "bible_verse_day",
+      "ms_ac_template": "bible_verse_day.json",
+      "data": "bible_verse_day.json",
+      "type": "application/json",
+      "screenshots": [
+        {
+          "src": "screenshot-mobile.png",
+          "sizes": "1080x1920",
+          "type": "image/png"
+        }
+      ]
+    }
+  ]
+}

@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { Highlight, Bookmark as BookmarkType, Note, ReadingHistoryItem, StreakState, AppSettings } from '../types';
 import { TRANSLATIONS } from '../data/bibleBooks';
+import { getApiUrl } from '../utils/api';
 
 interface ProfileViewProps {
   settings: AppSettings;
@@ -71,7 +72,7 @@ export default function ProfileView({
     setAuthError('');
     setAuthLoading(true);
 
-    const url = authMode === 'login' ? '/api/auth/login' : '/api/auth/signup';
+    const url = authMode === 'login' ? getApiUrl('/api/auth/login') : getApiUrl('/api/auth/signup');
     const body = authMode === 'login' 
       ? { email: authEmail, password: authPassword }
       : { email: authEmail, password: authPassword, name: authName };
