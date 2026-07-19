@@ -6,6 +6,26 @@
       "destination": "/api/passage.ts"
     },
     {
+      "source": "/api/auth/signup",
+      "destination": "/api/auth/signup.ts"
+    },
+    {
+      "source": "/api/auth/login",
+      "destination": "/api/auth/login.ts"
+    },
+    {
+      "source": "/api/user/sync",
+      "destination": "/api/user/sync.ts"
+    },
+    {
+      "source": "/api/progress/toggle",
+      "destination": "/api/progress/toggle.ts"
+    },
+    {
+      "source": "/api/daily-verse",
+      "destination": "/api/daily-verse.ts"
+    },
+    {
       "source": "/((?!api/|.*\\.[a-zA-Z0-9]+$).*)",
       "destination": "/index.html"
     }
