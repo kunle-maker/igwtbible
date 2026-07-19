@@ -23,6 +23,10 @@ interface ProfileViewProps {
   onNavigateToVerse: (book: string, chapter: number, verseNum?: number) => void;
   downloads: string[];
   onUpdateDownloads: (downloads: string[]) => void;
+  user?: { id: string; name: string; email: string } | null;
+  onLogin?: (userData: { id: string; name: string; email: string }) => void;
+  onLogout?: () => void;
+  completedChapters?: { book: string; chapter: number }[];
 }
 
 type ProfileTab = 'highlights' | 'bookmarks' | 'notes' | 'downloads' | 'stats' | 'history' | 'settings';
@@ -44,11 +48,57 @@ export default function ProfileView({
   onNavigateToVerse,
   downloads,
   onUpdateDownloads,
+  user = null,
+  onLogin = () => {},
+  onLogout = () => {},
+  completedChapters = []
 }: ProfileViewProps) {
   const [activeTab, setActiveTab] = useState<ProfileTab>('stats');
   const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [noteSearchText, setNoteSearchText] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  // Auth Form State
+  const [authMode, setAuthMode] = useState<'login' | 'signup' | null>(null);
+  const [authEmail, setAuthEmail] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
+  const [authName, setAuthName] = useState('');
+  const [authError, setAuthError] = useState('');
+  const [authLoading, setAuthLoading] = useState(false);
+
+  const handleAuthSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError('');
+    setAuthLoading(true);
+
+    const url = authMode === 'login' ? '/api/auth/login' : '/api/auth/signup';
+    const body = authMode === 'login' 
+      ? { email: authEmail, password: authPassword }
+      : { email: authEmail, password: authPassword, name: authName };
+
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Authentication failed');
+      }
+      if (data.user) {
+        onLogin(data.user);
+        setAuthMode(null);
+        setAuthEmail('');
+        setAuthPassword('');
+        setAuthName('');
+      }
+    } catch (err: any) {
+      setAuthError(err.message);
+    } finally {
+      setAuthLoading(false);
+    }
+  };
 
   // Group highlights by date
   const getGroupedHighlights = () => {
@@ -131,6 +181,133 @@ export default function ProfileView({
           className="w-12 h-12 rounded-2xl object-cover border border-[#D4AF37]/30 shadow-md"
           referrerPolicy="no-referrer"
         />
+      </div>
+
+      {/* Premium Corporate Cloud Sync & Auth Banner */}
+      <div className="px-4 animate-fade-in">
+        {user ? (
+          /* Logged In */
+          <div className="p-4 rounded-2xl bg-zinc-950 border border-emerald-500/10 shadow-sm flex items-center justify-between">
+            <div className="space-y-0.5">
+              <span className="text-[10px] uppercase font-mono font-bold text-emerald-400 tracking-wider flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                Cloud Sync Active
+              </span>
+              <p className="text-xs font-bold font-sans text-zinc-100">{user.name}</p>
+              <p className="text-[10px] font-sans text-zinc-500">{user.email}</p>
+            </div>
+            <button
+              onClick={onLogout}
+              className="px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-850 border border-zinc-800 text-zinc-400 hover:text-zinc-200 text-[10px] font-bold font-sans tracking-tight transition-all cursor-pointer"
+            >
+              Sign Out
+            </button>
+          </div>
+        ) : (
+          /* Logged Out */
+          <div className="p-4 rounded-2xl bg-zinc-950 border border-zinc-900/60 shadow-sm space-y-3">
+            {!authMode ? (
+              <div className="flex items-center justify-between gap-4">
+                <div className="space-y-0.5">
+                  <span className="text-[10px] uppercase font-mono font-bold text-gold-500 tracking-wider">
+                    Cloud Storage Offline
+                  </span>
+                  <p className="text-xs font-bold text-zinc-200 leading-tight font-sans">Sync stats, highlights, and notes.</p>
+                </div>
+                <div className="flex gap-1.5">
+                  <button
+                    onClick={() => {
+                      setAuthMode('login');
+                      setAuthError('');
+                    }}
+                    className="px-3 py-1.5 rounded-lg bg-[#D4AF37] hover:bg-[#AA8B1E] text-black text-[10px] font-extrabold font-sans tracking-tight transition-all cursor-pointer"
+                  >
+                    Sign In
+                  </button>
+                  <button
+                    onClick={() => {
+                      setAuthMode('signup');
+                      setAuthError('');
+                    }}
+                    className="px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-850 border border-zinc-800 text-zinc-300 hover:text-white text-[10px] font-bold font-sans tracking-tight transition-all cursor-pointer"
+                  >
+                    Sign Up
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <form onSubmit={handleAuthSubmit} className="space-y-3">
+                <div className="flex justify-between items-center pb-1.5 border-b border-zinc-900">
+                  <span className="text-[10px] uppercase font-mono font-bold text-gold-500 tracking-wider">
+                    {authMode === 'login' ? 'Sign In to Account' : 'Create Free Account'}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setAuthMode(null)}
+                    className="text-[10px] font-bold text-zinc-500 hover:text-zinc-300"
+                  >
+                    Cancel
+                  </button>
+                </div>
+
+                {authError && (
+                  <p className="p-2 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-400 text-[10px] font-medium leading-tight font-sans">
+                    {authError}
+                  </p>
+                )}
+
+                <div className="space-y-2">
+                  {authMode === 'signup' && (
+                    <input
+                      type="text"
+                      placeholder="Your Name"
+                      value={authName}
+                      onChange={(e) => setAuthName(e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-850 text-xs text-zinc-200 focus:outline-none focus:border-gold-500/40 font-sans"
+                      required
+                    />
+                  )}
+                  <input
+                    type="email"
+                    placeholder="Email Address"
+                    value={authEmail}
+                    onChange={(e) => setAuthEmail(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-850 text-xs text-zinc-200 focus:outline-none focus:border-gold-500/40 font-sans"
+                    required
+                  />
+                  <input
+                    type="password"
+                    placeholder="Password"
+                    value={authPassword}
+                    onChange={(e) => setAuthPassword(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-850 text-xs text-zinc-200 focus:outline-none focus:border-gold-500/40 font-sans"
+                    required
+                  />
+                </div>
+
+                <div className="flex items-center justify-between pt-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAuthMode(authMode === 'login' ? 'signup' : 'login');
+                      setAuthError('');
+                    }}
+                    className="text-[10px] font-semibold text-zinc-500 hover:text-zinc-300 underline font-sans"
+                  >
+                    {authMode === 'login' ? 'Need an account? Sign Up' : 'Already have an account? Log In'}
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={authLoading}
+                    className="px-4 py-1.5 rounded-lg bg-[#D4AF37] hover:bg-[#AA8B1E] text-black text-xs font-bold transition-all disabled:opacity-50 cursor-pointer"
+                  >
+                    {authLoading ? 'Verifying...' : authMode === 'login' ? 'Log In' : 'Sign Up'}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Tabs list - Premium slideable grid */}
@@ -226,6 +403,35 @@ export default function ProfileView({
                   );
                 })}
               </div>
+            </div>
+
+            {/* Completed Chapters list */}
+            <div className="p-5 rounded-3xl bg-zinc-950 border border-zinc-900 space-y-4">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-1.5">
+                  <Check className="w-4 h-4 text-emerald-400" />
+                  <span className="font-sans font-semibold text-sm text-zinc-300">Completed Chapters</span>
+                </div>
+                <span className="font-mono text-[10px] text-zinc-500">{completedChapters?.length || 0} read</span>
+              </div>
+              
+              {(!completedChapters || completedChapters.length === 0) ? (
+                <p className="text-zinc-500 text-xs text-center py-2 font-sans">
+                  No completed chapters marked yet. Mark them in the reader!
+                </p>
+              ) : (
+                <div className="flex flex-wrap gap-1.5 max-h-40 overflow-y-auto pr-1">
+                  {completedChapters.map((c, idx) => (
+                    <span 
+                      key={idx}
+                      onClick={() => onNavigateToVerse(c.book, c.chapter)}
+                      className="px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold font-mono tracking-tight cursor-pointer hover:bg-emerald-500/20 transition-all select-none"
+                    >
+                      {c.book} {c.chapter}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}

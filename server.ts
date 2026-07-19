@@ -2,6 +2,9 @@ import express from 'express';
 import path from 'path';
 import { createServer as createViteServer } from 'vite';
 import { fileURLToPath } from 'url';
+import crypto from 'crypto';
+import { findUserByEmail, findUserById, createUser, syncUserData, saveReadingProgress } from './server/db';
+import { DAILY_VERSES } from './src/data/dailyContent';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -12,6 +15,110 @@ async function startServer() {
 
   // JSON parsing middleware
   app.use(express.json());
+
+  // Authentication - SignUp
+  app.post('/api/auth/signup', async (req, res) => {
+    const { email, password, name } = req.body;
+    if (!email || !password || !name) {
+      return res.status(400).json({ error: 'Email, password and name are required' });
+    }
+    try {
+      const existing = await findUserByEmail(email);
+      if (existing) {
+        return res.status(400).json({ error: 'Email already registered' });
+      }
+      const hash = crypto.createHash('sha256').update(password).digest('hex');
+      const user = await createUser({ email, passwordHash: hash, name });
+      res.status(201).json({
+        user: {
+          id: user._id,
+          email: user.email,
+          name: user.name,
+        }
+      });
+    } catch (e: any) {
+      res.status(500).json({ error: 'Failed to sign up', details: e.message });
+    }
+  });
+
+  // Authentication - Login
+  app.post('/api/auth/login', async (req, res) => {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required' });
+    }
+    try {
+      const user = await findUserByEmail(email);
+      if (!user) {
+        return res.status(400).json({ error: 'Invalid email or password' });
+      }
+      const hash = crypto.createHash('sha256').update(password).digest('hex');
+      if (user.passwordHash !== hash) {
+        return res.status(400).json({ error: 'Invalid email or password' });
+      }
+      res.json({
+        user: {
+          id: user._id,
+          email: user.email,
+          name: user.name,
+        }
+      });
+    } catch (e: any) {
+      res.status(500).json({ error: 'Failed to login', details: e.message });
+    }
+  });
+
+  // Sync Highlights, Bookmarks, Notes & Progress
+  app.post('/api/user/sync', async (req, res) => {
+    const { userId, highlights, bookmarks, notes, progress } = req.body;
+    if (!userId) {
+      return res.status(400).json({ error: 'User ID is required' });
+    }
+    try {
+      const synced = await syncUserData(userId, { highlights, bookmarks, notes, progress });
+      res.json(synced);
+    } catch (e: any) {
+      res.status(500).json({ error: 'Failed to sync data', details: e.message });
+    }
+  });
+
+  // Toggle chapter progress completed / incompleted
+  app.post('/api/progress/toggle', async (req, res) => {
+    const { userId, book, chapter, completed } = req.body;
+    if (!userId || !book || !chapter) {
+      return res.status(400).json({ error: 'User ID, book, and chapter are required' });
+    }
+    try {
+      await saveReadingProgress(userId, book, parseInt(chapter, 10), completed);
+      res.json({ success: true });
+    } catch (e: any) {
+      res.status(500).json({ error: 'Failed to update progress', details: e.message });
+    }
+  });
+
+  // Real-time daily verse based on timezone
+  app.get('/api/daily-verse', async (req, res) => {
+    const tz = (req.query.tz as string) || 'UTC';
+    let dateStr = '';
+    try {
+      dateStr = new Date().toLocaleDateString('en-US', { timeZone: tz });
+    } catch {
+      dateStr = new Date().toLocaleDateString('en-US', { timeZone: 'UTC' });
+    }
+    
+    // Hash date string to produce a deterministic index
+    let hash = 0;
+    for (let i = 0; i < dateStr.length; i++) {
+      hash = dateStr.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const idx = Math.abs(hash) % DAILY_VERSES.length;
+    const selected = DAILY_VERSES[idx];
+    
+    res.json({
+      date: dateStr,
+      verse: selected
+    });
+  });
 
   // In-memory cache for scripture passages to ensure ultra-fast retrieval and reduce rate limiting
   const passageCache: { [key: string]: { timestamp: number; data: any } } = {};

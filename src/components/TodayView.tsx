@@ -14,6 +14,14 @@ interface TodayViewProps {
   userName?: string;
   theme?: 'light' | 'dark';
   onToggleTheme?: () => void;
+  dailyVerse?: {
+    reference: string;
+    book: string;
+    chapter: number;
+    verseNum: number;
+    text: string;
+    translation: string;
+  } | null;
 }
 
 export default function TodayView({
@@ -23,7 +31,8 @@ export default function TodayView({
   history,
   userName = 'Brother',
   theme = 'dark',
-  onToggleTheme
+  onToggleTheme,
+  dailyVerse
 }: TodayViewProps) {
   const [greeting, setGreeting] = useState('Good Evening');
   const isLight = theme === 'light';
@@ -95,44 +104,48 @@ export default function TodayView({
       </div>
 
       {/* Verse of the Day Passage */}
-      <div className={`p-6 rounded-[24px] border ${
+      <div className={`p-5 rounded-[16px] border ${
         isLight 
-          ? 'bg-white border-zinc-200/80 shadow-xs' 
-          : 'bg-[#121212]/40 border-zinc-900'
+          ? 'bg-white border-zinc-200 shadow-xs' 
+          : 'bg-[#121212]/30 border-zinc-900/80'
       }`}>
         {/* Gold reference citation */}
-        <div className="text-[#e9ae34] font-bold text-xs uppercase tracking-wider mb-2">
-          Philippians 4:7
+        <div className="text-[#e9ae34] font-bold text-[11px] uppercase tracking-wider mb-2 font-mono">
+          {dailyVerse ? `${dailyVerse.book} ${dailyVerse.chapter}:${dailyVerse.verseNum}` : "Philippians 4:7"}
         </div>
 
         {/* Main verse text */}
-        <p className="font-sans text-[17px] font-semibold leading-relaxed tracking-tight">
-          And the peace of God, which transcends all understanding, will guard your hearts and your minds in Christ Jesus.
+        <p className="font-serif text-base font-medium leading-relaxed tracking-normal text-zinc-150">
+          "{dailyVerse ? dailyVerse.text : "And the peace of God, which transcends all understanding, will guard your hearts and your minds in Christ Jesus."}"
         </p>
 
         {/* Action Triggers Centered below text */}
-        <div className="flex justify-center gap-16 pt-6 pb-2">
+        <div className="flex justify-center gap-12 pt-4 pb-1">
           {/* Share Action */}
           <button
             onClick={() => onOpenShareModal({
-              text: "And the peace of God, which transcends all understanding, will guard your hearts and your minds in Christ Jesus.",
-              book: "Philippians",
-              chapter: 4,
-              verseNum: 7,
-              translation: "NIV"
+              text: dailyVerse ? dailyVerse.text : "And the peace of God, which transcends all understanding, will guard your hearts and your minds in Christ Jesus.",
+              book: dailyVerse ? dailyVerse.book : "Philippians",
+              chapter: dailyVerse ? dailyVerse.chapter : 4,
+              verseNum: dailyVerse ? dailyVerse.verseNum : 7,
+              translation: dailyVerse ? dailyVerse.translation : "NIV"
             })}
-            className="flex flex-col items-center gap-1.5 group cursor-pointer"
+            className="flex flex-col items-center gap-1 group cursor-pointer"
           >
-            <Share2 className="w-4.5 h-4.5 text-zinc-500 group-hover:text-[#e9ae34] transition-colors" />
+            <Share2 className="w-4 h-4 text-zinc-500 group-hover:text-[#e9ae34] transition-colors" />
             <span className="text-[10px] font-sans font-bold tracking-tight text-zinc-500 group-hover:text-[#e9ae34] transition-colors">Share</span>
           </button>
 
           {/* Note Action */}
           <button
-            onClick={() => onNavigateToBible('Philippians', 4, 7)}
-            className="flex flex-col items-center gap-1.5 group cursor-pointer"
+            onClick={() => onNavigateToBible(
+              dailyVerse ? dailyVerse.book : 'Philippians', 
+              dailyVerse ? dailyVerse.chapter : 4, 
+              dailyVerse ? dailyVerse.verseNum : 7
+            )}
+            className="flex flex-col items-center gap-1 group cursor-pointer"
           >
-            <FileText className="w-4.5 h-4.5 text-zinc-500 group-hover:text-[#e9ae34] transition-colors" />
+            <FileText className="w-4 h-4 text-zinc-500 group-hover:text-[#e9ae34] transition-colors" />
             <span className="text-[10px] font-sans font-bold tracking-tight text-zinc-500 group-hover:text-[#e9ae34] transition-colors">Read Full</span>
           </button>
         </div>
@@ -143,8 +156,12 @@ export default function TodayView({
         
         {/* Card 1: Today's Prayer */}
         <div 
-          onClick={() => onNavigateToBible('Philippians', 4, 7)}
-          className={`flex items-center gap-4 p-4 rounded-[24px] border transition-all cursor-pointer ${
+          onClick={() => onNavigateToBible(
+            dailyVerse ? dailyVerse.book : 'Philippians', 
+            dailyVerse ? dailyVerse.chapter : 4, 
+            dailyVerse ? dailyVerse.verseNum : 7
+          )}
+          className={`flex items-center gap-4 p-4 rounded-[16px] border transition-all cursor-pointer ${
             isLight 
               ? 'bg-white hover:bg-zinc-100/50 border-zinc-200 shadow-sm' 
               : 'bg-[#121212] hover:bg-zinc-900/40 border-zinc-900/60 hover:border-zinc-800'
@@ -173,15 +190,19 @@ export default function TodayView({
 
         {/* Card 2: Memorize Verse */}
         <div 
-          onClick={() => onNavigateToBible('Philippians', 4, 7)}
-          className={`flex items-center gap-4 p-4 rounded-[24px] border transition-all cursor-pointer ${
+          onClick={() => onNavigateToBible(
+            dailyVerse ? dailyVerse.book : 'Philippians', 
+            dailyVerse ? dailyVerse.chapter : 4, 
+            dailyVerse ? dailyVerse.verseNum : 7
+          )}
+          className={`flex items-center gap-4 p-4 rounded-[16px] border transition-all cursor-pointer ${
             isLight 
               ? 'bg-white hover:bg-zinc-100/50 border-zinc-200 shadow-sm' 
               : 'bg-[#121212] hover:bg-zinc-900/40 border-zinc-900/60 hover:border-zinc-800'
           }`}
         >
           {/* Duotone Thumbnail overlay */}
-          <div className="w-20 h-14 rounded-[16px] bg-[#d29b95] relative overflow-hidden flex-shrink-0 flex items-center justify-center">
+          <div className="w-20 h-14 rounded-[12px] bg-[#d29b95] relative overflow-hidden flex-shrink-0 flex items-center justify-center">
             <img 
               src="https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=150&q=80" 
               alt="Memorize Verse Thumbnail"
@@ -197,14 +218,16 @@ export default function TodayView({
           </div>
           <div className="flex-1">
             <h3 className="font-sans font-bold text-sm">Memorize Verse</h3>
-            <p className={`font-sans text-xs mt-0.5 ${isLight ? 'text-zinc-500' : 'text-zinc-400'}`}>Philippians 4:7</p>
+            <p className={`font-sans text-xs mt-0.5 ${isLight ? 'text-zinc-500' : 'text-zinc-400'}`}>
+              {dailyVerse ? `${dailyVerse.book} ${dailyVerse.chapter}:${dailyVerse.verseNum}` : "Philippians 4:7"}
+            </p>
           </div>
         </div>
 
         {/* Card 3: Continue Reading */}
         <div 
           onClick={() => onNavigateToBible(latestReadBook, latestReadChapter)}
-          className={`flex items-center gap-4 p-4 rounded-[24px] border transition-all cursor-pointer ${
+          className={`flex items-center gap-4 p-4 rounded-[16px] border transition-all cursor-pointer ${
             isLight 
               ? 'bg-white hover:bg-zinc-100/50 border-zinc-200 shadow-sm' 
               : 'bg-[#121212] hover:bg-zinc-900/40 border-zinc-900/60 hover:border-zinc-800'

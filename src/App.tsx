@@ -44,12 +44,64 @@ export default function App() {
   const [history, setHistory] = useState<ReadingHistoryItem[]>(loadHistory());
   const [streak, setStreak] = useState<StreakState>(loadStreak());
   const [downloads, setDownloads] = useState<string[]>(loadDownloads());
+  const [completedChapters, setCompletedChapters] = useState<{ book: string; chapter: number }[]>(() => {
+    try {
+      const stored = localStorage.getItem('igwt_completed_chapters');
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  // User Authentication State
+  const [user, setUser] = useState<{ id: string; name: string; email: string } | null>(() => {
+    try {
+      const stored = localStorage.getItem('igwt_user');
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  // Real-time timezone Daily Verse
+  const [dailyVerse, setDailyVerse] = useState<{
+    reference: string;
+    book: string;
+    chapter: number;
+    verseNum: number;
+    text: string;
+    translation: string;
+  } | null>(null);
+
+  useEffect(() => {
+    const fetchDailyVerse = async () => {
+      try {
+        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+        const res = await fetch(`/api/daily-verse?tz=${encodeURIComponent(tz)}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.verse) {
+            setDailyVerse(data.verse);
+          }
+        }
+      } catch (e) {
+        console.error('Failed to fetch daily verse:', e);
+      }
+    };
+    fetchDailyVerse();
+  }, []);
 
   // Theme and Username States
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     return (localStorage.getItem('igwt_theme') as 'light' | 'dark') || 'dark';
   });
   const [userName, setUserName] = useState<string>(() => {
+    const storedUser = localStorage.getItem('igwt_user');
+    if (storedUser) {
+      try {
+        return JSON.parse(storedUser).name;
+      } catch {}
+    }
     return localStorage.getItem('igwt_userName') || '';
   });
   const [userIp, setUserIp] = useState<string>('');
@@ -272,6 +324,88 @@ export default function App() {
     setIsShareModalOpen(true);
   };
 
+  // 9. Auth and Sync Events
+  const handleLogin = async (userData: { id: string; name: string; email: string }) => {
+    setUser(userData);
+    localStorage.setItem('igwt_user', JSON.stringify(userData));
+    localStorage.setItem('igwt_userName', userData.name);
+    setUserName(userData.name);
+
+    try {
+      const res = await fetch('/api/user/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: userData.id,
+          highlights,
+          bookmarks,
+          notes,
+          progress: completedChapters
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.highlights) {
+          setHighlights(data.highlights);
+          saveHighlights(data.highlights);
+        }
+        if (data.bookmarks) {
+          setBookmarks(data.bookmarks);
+          saveBookmarks(data.bookmarks);
+        }
+        if (data.notes) {
+          setNotes(data.notes);
+          saveNotes(data.notes);
+        }
+        if (data.progress) {
+          const mapped = data.progress.map((p: any) => ({ book: p.book, chapter: p.chapter }));
+          setCompletedChapters(mapped);
+          localStorage.setItem('igwt_completed_chapters', JSON.stringify(mapped));
+        }
+      }
+    } catch (e) {
+      console.error('Failed to sync on login:', e);
+    }
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    localStorage.removeItem('igwt_user');
+    localStorage.removeItem('igwt_userName');
+    setUserName('');
+    setCompletedChapters([]);
+    localStorage.removeItem('igwt_completed_chapters');
+  };
+
+  const handleToggleChapterCompleted = async (book: string, chapter: number) => {
+    const exists = completedChapters.some(c => c.book === book && c.chapter === chapter);
+    let updated;
+    if (exists) {
+      updated = completedChapters.filter(c => !(c.book === book && c.chapter === chapter));
+    } else {
+      updated = [...completedChapters, { book, chapter }];
+    }
+    setCompletedChapters(updated);
+    localStorage.setItem('igwt_completed_chapters', JSON.stringify(updated));
+
+    if (user) {
+      try {
+        await fetch('/api/progress/toggle', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: user.id,
+            book,
+            chapter,
+            completed: !exists
+          })
+        });
+      } catch (e) {
+        console.error('Failed to sync completed chapter toggle:', e);
+      }
+    }
+  };
+
   if (showSplash) {
     return (
       /* Splash screen */
@@ -321,6 +455,7 @@ export default function App() {
             userName={userName}
             theme={theme}
             onToggleTheme={handleToggleTheme}
+            dailyVerse={dailyVerse}
           />
         )}
 
@@ -348,6 +483,8 @@ export default function App() {
             cachedChapters={cachedChapters}
             onCacheChapter={handleCacheChapter}
             theme={theme}
+            completedChapters={completedChapters}
+            onToggleChapterCompleted={handleToggleChapterCompleted}
           />
         )}
 
@@ -382,6 +519,10 @@ export default function App() {
             onNavigateToVerse={handleNavigateToBible}
             downloads={downloads}
             onUpdateDownloads={handleUpdateDownloads}
+            user={user}
+            onLogin={handleLogin}
+            onLogout={handleLogout}
+            completedChapters={completedChapters}
           />
         )}
       </main>

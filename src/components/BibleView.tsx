@@ -30,6 +30,8 @@ interface BibleViewProps {
   cachedChapters: { [key: string]: { book: string; chapter: number; translation: string; verses: Verse[] } };
   onCacheChapter: (key: string, data: { book: string; chapter: number; translation: string; verses: Verse[] }) => void;
   theme?: 'light' | 'dark';
+  completedChapters?: { book: string; chapter: number }[];
+  onToggleChapterCompleted?: (book: string, chapter: number) => void;
 }
 
 export default function BibleView({
@@ -55,6 +57,8 @@ export default function BibleView({
   cachedChapters,
   onCacheChapter,
   theme = 'dark',
+  completedChapters = [],
+  onToggleChapterCompleted = () => {}
 }: BibleViewProps) {
   const isLight = theme === 'light';
   const [verses, setVerses] = useState<Verse[]>([]);
@@ -642,6 +646,28 @@ export default function BibleView({
                   </div>
                 );
               })}
+            </div>
+
+            {/* Elegant Completed Chapter Progress Card */}
+            <div className={`p-4 rounded-xl border flex items-center justify-between transition-all ${
+              isLight 
+                ? 'bg-zinc-100/60 border-zinc-200' 
+                : 'bg-zinc-950/40 border-zinc-900/60'
+            }`}>
+              <div className="space-y-0.5">
+                <span className="text-[10px] uppercase font-mono font-bold text-gold-500 tracking-wider">Lesson Progress</span>
+                <p className="text-xs font-bold font-sans">Finished reading this chapter?</p>
+              </div>
+              <button
+                onClick={() => onToggleChapterCompleted(currentBook, currentChapter)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer select-none ${
+                  completedChapters?.some((c: any) => c.book === currentBook && c.chapter === currentChapter)
+                    ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
+                    : 'bg-[#D4AF37]/10 border border-[#D4AF37]/20 text-[#D4AF37] hover:bg-[#D4AF37]/20'
+                }`}
+              >
+                <span>{completedChapters?.some((c: any) => c.book === currentBook && c.chapter === currentChapter) ? '✓ Completed' : 'Mark Complete'}</span>
+              </button>
             </div>
 
             {/* Bottom pagination & Zen Mode exit triggers */}
